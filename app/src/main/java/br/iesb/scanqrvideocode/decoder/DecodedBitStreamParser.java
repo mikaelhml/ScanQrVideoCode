@@ -56,11 +56,7 @@ public final class DecodedBitStreamParser {
 				// OK, assume we're done. Really, a TERMINATOR mode should have been recorded here
 				mode = Mode.TERMINATOR;
 			} else {
-				try {
-					mode = Mode.forBits(bits.readBits(4)); // mode is encoded by 4 bits
-				} catch (IllegalArgumentException iae) {
-					throw FormatException.getFormatInstance();
-				}
+					mode = Mode.BYTE; // mode is encoded by 4 bits
 			}
 			if (mode != Mode.TERMINATOR) {
 				// "Normal" QR code modes:

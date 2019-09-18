@@ -3,34 +3,39 @@ package br.iesb.scanqrvideocode.main;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Base64;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.google.zxing.BarcodeFormat;
-import com.google.zxing.FormatException;
 import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
-import com.google.zxing.common.DecoderResult;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
-import com.google.zxing.qrcode.decoder.Version;
 
-import java.io.File;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import br.iesb.scanqrvideocode.R;
 import br.iesb.scanqrvideocode.binary.BinaryQRCodeWriter;
-
-import static br.iesb.scanqrvideocode.decoder.DecodedBitStreamParser.decode;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -38,6 +43,11 @@ public class MainActivity extends AppCompatActivity {
     private byte[] byteArray;
     private Boolean b;
     private ImageView imageView;
+    private Activity context;
+    private List<String> codigos;
+    private String binario;
+    public static final int TOTALQR = 1996;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,35 +61,8 @@ public class MainActivity extends AppCompatActivity {
         btnCriarQRCode.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //int w = 15;
-                // int h = 15;
-
-                //Bitmap.Config conf = Bitmap.Config.ARGB_8888; // see other conf types
-                //Bitmap bitmap = Bitmap.createBitmap(w, h, conf);
-                //String hexChar = bytesToHex(byteArray);
-                // criarQRCode(byteArray, false);
-                BinaryQRCodeWriter qrCodeWriter = new BinaryQRCodeWriter();
-                byte[] bytes = hexStringToByteArray("BF05FF");//0123456789ABCDEF0123456789ABCDEF01");
-                int width = 512;
-                int height = 512;
-                String fileType = "png";
-                String filePath = "QRcode.png"; // Salva a imagem do QR Code nesse caminho!
-                File qrFile = new File(filePath);
-                try {
-                    BitMatrix byteMatrix = qrCodeWriter.encode(bytes, BarcodeFormat.QR_CODE, width, height);
-                    Bitmap bmp = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
-                    for (int x = 0; x < width; x++) {
-                        for (int y = 0; y < height; y++) {
-                            if (!byteMatrix.get(x, y))
-                                bmp.setPixel(x, y, Color.WHITE);
-                            else
-                                bmp.setPixel(x, y, Color.BLACK);
-                        }
-                    }
-                    imageView.setImageBitmap(bmp);
-                } catch (WriterException ex) {
-                    Logger.getLogger(MainActivity.class.getName()).log(Level.SEVERE, null, ex);
-                }
+                byte[] bytes = new byte[0];
+                criarQRCode(bytes,false);
             }
         });
 
@@ -101,7 +84,31 @@ public class MainActivity extends AppCompatActivity {
         if (!b) {
             carregarImg();
         } else {
-            //gerarQR(byteArray);
+            gerarQR(byteArray);
+        }
+
+    }
+
+    private void gerarQR(byte[] byteArray) {
+
+        BinaryQRCodeWriter qrCodeWriter = new BinaryQRCodeWriter();
+        int width = 512;
+        int height = 512;
+        try {
+            //1998 tamanho MAXIMO de string que ta dando certo
+            BitMatrix byteMatrix = qrCodeWriter.encode(byteArray, BarcodeFormat.QR_CODE, width, height);
+            Bitmap bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            for (int x = 0; x < width; x++) {
+                for (int y = 0; y < height; y++) {
+                    if (!byteMatrix.get(x, y))
+                        bmp.setPixel(x, y, Color.WHITE);
+                    else
+                        bmp.setPixel(x, y, Color.BLACK);
+                }
+            }
+            imageView.setImageBitmap(bmp);
+        } catch (WriterException ex) {
+            Logger.getLogger(MainActivity.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }
@@ -121,10 +128,41 @@ public class MainActivity extends AppCompatActivity {
         imageView = findViewById(R.id.img_QRCode);
     }
 
+    @SuppressLint("StaticFieldLeak")
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
 
+        super.onActivityResult(requestCode, resultCode, data);
         if ((requestCode == 111) && (resultCode == RESULT_OK)) {
-            Uri selectedFile = data.getData(); //The uri with the location of the file
+            Uri filePath = data.getData();
+            try {
+                InputStream inputStream = getContentResolver().openInputStream(filePath);
+                final Bitmap yourSelectedImage = BitmapFactory.decodeStream(inputStream);
+                new AsyncTask<Void, Void, String>() {
+                    @Override
+                    protected String doInBackground(Void... voids) {
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        yourSelectedImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
+                        byte[] b = baos.toByteArray();
+
+                        String encodeImage = Base64.encodeToString(b, Base64.DEFAULT);
+                        String stringretorno = "0000000000111222333" + encodeImage;
+                        return stringretorno;
+                    }
+
+                    @Override
+                    protected void onPostExecute(String s) {
+                        String codificacao = s.substring(0,19);
+                        s = s.substring(19);
+                        byte[] decoedString = Base64.decode(s,Base64.DEFAULT);
+                        Bitmap decoded = BitmapFactory.decodeByteArray(decoedString,0,decoedString.length);
+                        imageView.setImageBitmap(decoded);
+
+                    }
+                }.execute();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            //Toast.makeText(context, "Serão gerados " + codigos.size() + "QR Codes", Toast.LENGTH_LONG).show();
         }
         IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
 
@@ -132,26 +170,12 @@ public class MainActivity extends AppCompatActivity {
             if (result.getContents() == null) {
                 Toast.makeText(this, "Está vazio", Toast.LENGTH_LONG).show();
             } else {
-
-                BitmapFactory.Options options = new BitmapFactory.Options();
-                //DecoderResult bits = decode(result.getContents().getBytes());
-                Bitmap bitmap = BitmapFactory.decodeByteArray(result.getContents().getBytes(), 0, result.getContents().length(), options);
-                imageView.setImageBitmap(bitmap);
                 Toast.makeText(this, result.getContents(), Toast.LENGTH_LONG).show();
-
-
             }
 
         }
+
     }
 
-    public static byte[] hexStringToByteArray(String s) {
-        int len = s.length();
-        byte[] data = new byte[len / 2];
-        for (int i = 0; i < len; i += 2) {
-            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
-                    + Character.digit(s.charAt(i + 1), 16));
-        }
-        return data;
-    }
+
 }

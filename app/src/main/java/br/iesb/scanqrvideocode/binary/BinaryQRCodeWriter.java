@@ -47,11 +47,6 @@ public final class BinaryQRCodeWriter {
                           int height,
                           Map<EncodeHintType,?> hints) throws WriterException {
 
-	  /*
-    if (contents.length == 0) {
-      throw new IllegalArgumentException("Found empty contents");
-    }
-    */
 
     if (format != BarcodeFormat.QR_CODE) {
       throw new IllegalArgumentException("Can only encode QR_CODE, but got " + format);

@@ -23,6 +23,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import br.iesb.scanqrvideocode.R;
+import br.iesb.scanqrvideocode.binary.BinaryQRCodeWriter;
 import br.iesb.scanqrvideocode.model.ArquivoString;
 
 @SuppressLint("Registered")
@@ -54,11 +55,11 @@ public class GerarQrs extends AppCompatActivity {
 
     private void gerarQR(String string64) {
 
-        QRCodeWriter qrCodeWriter = new QRCodeWriter();
+        BinaryQRCodeWriter qrCodeWriter = new BinaryQRCodeWriter();
         int width = 512;
         int height = 512;
         try {
-            BitMatrix byteMatrix = qrCodeWriter.encode(string64, BarcodeFormat.QR_CODE, width, height);
+            BitMatrix byteMatrix = qrCodeWriter.encode(string64.getBytes(), BarcodeFormat.QR_CODE, width, height);
             Bitmap bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
             for (int x = 0; x < width; x++) {
                 for (int y = 0; y < height; y++) {

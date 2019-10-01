@@ -14,6 +14,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.zxing.BarcodeFormat;
+import com.google.zxing.EncodeHintType;
 import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
@@ -47,19 +48,29 @@ public class GerarQrs extends AppCompatActivity {
 
     private void init() {
         for (String g : arquivoString.getArrayString()) {
-            gerarQR(g);
+
+            gerarQR(recuperarArrayByte(g));
         }
         imgQr.setImageBitmap(listaQR.get(0));
         textContadorQR.setText("Atual: "+(posicao+1)+"      De: "+listaQR.size());
     }
 
-    private void gerarQR(String string64) {
+    private byte[] recuperarArrayByte(String g) {
+        byte[] bytesRecuperados = new byte[g.length()];
+
+        for(int i=0;i<g.length();i++){
+            bytesRecuperados[i] = (byte)g.charAt(i);
+        }
+        return bytesRecuperados;
+    }
+
+    private void gerarQR(byte[] bytes) {
 
         BinaryQRCodeWriter qrCodeWriter = new BinaryQRCodeWriter();
         int width = 512;
         int height = 512;
         try {
-            BitMatrix byteMatrix = qrCodeWriter.encode(string64.getBytes(), BarcodeFormat.QR_CODE, width, height);
+            BitMatrix byteMatrix = qrCodeWriter.encode(bytes, BarcodeFormat.QR_CODE, width, height);
             Bitmap bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
             for (int x = 0; x < width; x++) {
                 for (int y = 0; y < height; y++) {

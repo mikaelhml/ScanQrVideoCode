@@ -33,6 +33,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
+import br.iesb.scanqrvideocode.encoder.MaskUtil;
+
 /**
  * @author satorux@google.com (Satoru Takabayashi) - creator
  * @author dswitkin@google.com (Daniel Switkin) - ported from C++
@@ -41,12 +43,12 @@ public final class Encoder {
 
   // The original table is defined in the table 5 of JISX0510:2004 (p.19).
   private static final int[] ALPHANUMERIC_TABLE = {
-      -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,  // 0x00-0x0f
-      -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,  // 0x10-0x1f
-      36, -1, -1, -1, 37, 38, -1, -1, -1, -1, 39, 40, -1, 41, 42, 43,  // 0x20-0x2f
-      0,   1,  2,  3,  4,  5,  6,  7,  8,  9, 44, -1, -1, -1, -1, -1,  // 0x30-0x3f
-      -1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,  // 0x40-0x4f
-      25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, -1, -1, -1, -1, -1,  // 0x50-0x5f
+          -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,  // 0x00-0x0f
+          -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,  // 0x10-0x1f
+          36, -1, -1, -1, 37, 38, -1, -1, -1, -1, 39, 40, -1, 41, 42, 43,  // 0x20-0x2f
+          0,   1,  2,  3,  4,  5,  6,  7,  8,  9, 44, -1, -1, -1, -1, -1,  // 0x30-0x3f
+          -1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,  // 0x40-0x4f
+          25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, -1, -1, -1, -1, -1,  // 0x50-0x5f
   };
 
   static final String DEFAULT_BYTE_MODE_ENCODING = "ISO-8859-1";
@@ -58,9 +60,9 @@ public final class Encoder {
   // Basically it applies four rules and summate all penalties.
   private static int calculateMaskPenalty(ByteMatrix matrix) {
     return MaskUtil.applyMaskPenaltyRule1(matrix)
-        + MaskUtil.applyMaskPenaltyRule2(matrix)
-        + MaskUtil.applyMaskPenaltyRule3(matrix)
-        + MaskUtil.applyMaskPenaltyRule4(matrix);
+            + MaskUtil.applyMaskPenaltyRule2(matrix)
+            + MaskUtil.applyMaskPenaltyRule3(matrix)
+            + MaskUtil.applyMaskPenaltyRule4(matrix);
   }
 
   /**
@@ -106,30 +108,30 @@ public final class Encoder {
     // Collect data within the main segment, separately, to count its size if needed. Don't add it to
     // main payload yet.
     BitArray dataBits = new BitArray();
-    
+
     append8BitBytes(content, dataBits, encoding);
-    
+
     // Hard part: need to know version to know how many bits length takes. But need to know how many
     // bits it takes to know version. First we take a guess at version by assuming version will be
     // the minimum, 1:
 
     int provisionalBitsNeeded = headerBits.getSize()
-        + mode.getCharacterCountBits(Version.getVersionForNumber(1))
-        + dataBits.getSize();
+            + mode.getCharacterCountBits(Version.getVersionForNumber(1))
+            + dataBits.getSize();
     Version provisionalVersion = chooseVersion(provisionalBitsNeeded, ecLevel);
 
     // Use that guess to calculate the right version. I am still not sure this works in 100% of cases.
 
     int bitsNeeded = headerBits.getSize()
-        + mode.getCharacterCountBits(provisionalVersion)
-        + dataBits.getSize();
+            + mode.getCharacterCountBits(provisionalVersion)
+            + dataBits.getSize();
     Version version = chooseVersion(bitsNeeded, ecLevel);
 
     BitArray headerAndDataBits = new BitArray();
     headerAndDataBits.appendBitArray(headerBits);
     // Find "length" of main segment and write it
     int numLetters = dataBits.getSizeInBytes();
-    
+
     appendLengthInfo(numLetters, version, mode, headerAndDataBits);
     // Put data together into the overall payload
     headerAndDataBits.appendBitArray(dataBits);
@@ -142,9 +144,9 @@ public final class Encoder {
 
     // Interleave data bits with error correction code.
     BitArray finalBits = interleaveWithECBytes(headerAndDataBits,
-                                               version.getTotalCodewords(),
-                                               numDataBytes,
-                                               ecBlocks.getNumBlocks());
+            version.getTotalCodewords(),
+            numDataBytes,
+            ecBlocks.getNumBlocks());
 
     QRCode qrCode = new QRCode();
 
@@ -221,14 +223,14 @@ public final class Encoder {
     int capacity = numDataBytes * 8;
     if (bits.getSize() > capacity) {
       throw new WriterException("data bits cannot fit in the QR Code" + bits.getSize() + " > " +
-          capacity);
+              capacity);
     }
     for (int i = 0; i < 4 && bits.getSize() < capacity; ++i) {
       bits.appendBit(false);
     }
     // Append termination bits. See 8.4.8 of JISX0510:2004 (p.24) for details.
     // If the last byte isn't 8-bit aligned, we'll add padding bits.
-    int numBitsInLastByte = bits.getSize() & 0x07;    
+    int numBitsInLastByte = bits.getSize() & 0x07;
     if (numBitsInLastByte > 0) {
       for (int i = numBitsInLastByte; i < 8; i++) {
         bits.appendBit(false);
@@ -285,10 +287,10 @@ public final class Encoder {
     }
     // 196 = (13 + 26) * 4 + (14 + 26) * 1
     if (numTotalBytes !=
-        ((numDataBytesInGroup1 + numEcBytesInGroup1) *
-            numRsBlocksInGroup1) +
-            ((numDataBytesInGroup2 + numEcBytesInGroup2) *
-                numRsBlocksInGroup2)) {
+            ((numDataBytesInGroup1 + numEcBytesInGroup1) *
+                    numRsBlocksInGroup1) +
+                    ((numDataBytesInGroup2 + numEcBytesInGroup2) *
+                            numRsBlocksInGroup2)) {
       throw new WriterException("Total bytes mismatch");
     }
 
@@ -328,8 +330,8 @@ public final class Encoder {
       int[] numDataBytesInBlock = new int[1];
       int[] numEcBytesInBlock = new int[1];
       getNumDataBytesAndNumECBytesForBlockID(
-          numTotalBytes, numDataBytes, numRSBlocks, i,
-          numDataBytesInBlock, numEcBytesInBlock);
+              numTotalBytes, numDataBytes, numRSBlocks, i,
+              numDataBytesInBlock, numEcBytesInBlock);
 
       int size = numDataBytesInBlock[0];
       byte[] dataBytes = new byte[size];
@@ -367,7 +369,7 @@ public final class Encoder {
     }
     if (numTotalBytes != result.getSizeInBytes()) {  // Should be same.
       throw new WriterException("Interleaving error: " + numTotalBytes + " and " +
-          result.getSizeInBytes() + " differ.");
+              result.getSizeInBytes() + " differ.");
     }
 
     return result;

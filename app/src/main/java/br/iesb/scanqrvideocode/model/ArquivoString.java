@@ -3,8 +3,7 @@ package br.iesb.scanqrvideocode.model;
 import java.util.ArrayList;
 
 import static br.iesb.scanqrvideocode.constants.Contantes.CAPACIDADEQR;
-import static br.iesb.scanqrvideocode.constants.Contantes.HEADER;
-import static br.iesb.scanqrvideocode.constants.Contantes.TAM_NOME_ARQUIVO;
+
 
 public class ArquivoString {
     private ArrayList<String> arrayString = new ArrayList<String>();
@@ -15,11 +14,15 @@ public class ArquivoString {
     public ArquivoString() {
     }
 
-    public ArquivoString(String s) {
-        dividirString(s);
+    public ArquivoString(String s,String arquivoNome) {
+        dividirString(s,arquivoNome);
     }
 
-    private void dividirString(String s) {
+    private void dividirString(String s, String arquivoNome) {
+        String z = "00" + arquivoNome.length();
+        z = z.substring(z.length()-3);
+        s = arquivoNome + s;
+        s = z+s;
         quantidadeQRGerado = (int) s.length() / CAPACIDADEQR;
         quantidadeQRGerado += ((s.length() % CAPACIDADEQR > 0) ? 1 : 0);
         String x;
@@ -32,21 +35,12 @@ public class ArquivoString {
             y = "00" + quantidadeQRGerado;
             y = y.substring(y.length() - 3);
 
-            if (x.equals("000")) {
-                if (contador + CAPACIDADEQR + TAM_NOME_ARQUIVO > s.length()) {
-                    arrayString.add(x + y + "555555555555555555555555555555" + s.substring(contador));
-                } else {
-                    arrayString.add(x + y + "555555555555555555555555555555" + s.substring(contador, contador + CAPACIDADEQR - TAM_NOME_ARQUIVO));
-                    contador += CAPACIDADEQR + TAM_NOME_ARQUIVO;
-                }
-            } else {
                 if (contador + CAPACIDADEQR > s.length()) {
                     arrayString.add(x + y + s.substring(contador));
                 } else {
                     arrayString.add(x + y + s.substring(contador, contador + CAPACIDADEQR));
                     contador += CAPACIDADEQR;
                 }
-            }
         }
 
     }

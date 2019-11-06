@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -34,7 +35,8 @@ public class GerarQrs extends AppCompatActivity {
     private Button btnAvancar, btnAnterior, btnVoltar;
     private TextView textContadorQR;
     private ArrayList<Bitmap> listaQR = new ArrayList<>();
-    private int posicao=0;
+    private int posicao=-1;
+    private int index;
 
 
     @Override
@@ -51,8 +53,23 @@ public class GerarQrs extends AppCompatActivity {
 
             gerarQR(recuperarArrayByte(g));
         }
-        imgQr.setImageBitmap(listaQR.get(0));
-        textContadorQR.setText("Atual: "+(posicao+1)+"      De: "+listaQR.size());
+        apresentarVideoQR(listaQR);
+
+    }
+
+    private void apresentarVideoQR(final ArrayList<Bitmap> listaQR) {
+
+        new CountDownTimer(listaQR.size()*1000*10, 600) {
+            public void onFinish() {
+                // When timer is finished
+                // Execute your code here
+            }
+
+            public void onTick(long millisUntilFinished) {
+                avancaPosicao();
+            }
+        }.start();
+
     }
 
     private byte[] recuperarArrayByte(String g) {
@@ -84,6 +101,19 @@ public class GerarQrs extends AppCompatActivity {
             listaQR.add(bmp);
         } catch (WriterException ex) {
             Logger.getLogger(MainActivity.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void avancaPosicao(){
+        if(posicao+1<listaQR.size()){
+            imgQr.setImageBitmap(listaQR.get(posicao+1));
+            posicao += 1;
+            textContadorQR.setText("Atual: "+(posicao+1)+"      De: "+listaQR.size());
+
+        }
+        else{
+            //Toast.makeText(GerarQrs.this,"Voce já esta no ultimo QR",Toast.LENGTH_SHORT).show();
+            posicao=-1;
         }
     }
 
@@ -119,7 +149,7 @@ public class GerarQrs extends AppCompatActivity {
 
                 }
                 else{
-                    Toast.makeText(GerarQrs.this,"Voce já esta no ultimo QR",Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(GerarQrs.this,"Voce já esta no ultimo QR",Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -128,7 +158,7 @@ public class GerarQrs extends AppCompatActivity {
 
     private void iniciaVariaveis() {
         imgQr = findViewById(R.id.img_QR);
-        arquivoString = new ArquivoString(getIntent().getStringExtra("string64"));
+        arquivoString = new ArquivoString(getIntent().getStringExtra("string64"),getIntent().getStringExtra("nomeArquivo"));
         btnAnterior = findViewById(R.id.btnAnterior);
         btnAvancar = findViewById(R.id.btnProximo);
         btnVoltar = findViewById(R.id.btnVoltar);

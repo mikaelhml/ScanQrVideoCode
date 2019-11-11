@@ -51,7 +51,8 @@ public class GerarQrs extends AppCompatActivity {
     private void init() {
         for (String g : arquivoString.getArrayString()) {
 
-            gerarQR(recuperarArrayByte(g));
+            gerarQR(g);
+            //gerarQR(recuperarArrayByte(g));
         }
         apresentarVideoQR(listaQR);
 
@@ -59,7 +60,7 @@ public class GerarQrs extends AppCompatActivity {
 
     private void apresentarVideoQR(final ArrayList<Bitmap> listaQR) {
 
-        new CountDownTimer(listaQR.size()*1000*10, 600) {
+        new CountDownTimer(listaQR.size()*1000*10, 900) {
             public void onFinish() {
                 // When timer is finished
                 // Execute your code here
@@ -81,13 +82,14 @@ public class GerarQrs extends AppCompatActivity {
         return bytesRecuperados;
     }
 
-    private void gerarQR(byte[] bytes) {
+    private void gerarQR(String bytes) {
 
         BinaryQRCodeWriter qrCodeWriter = new BinaryQRCodeWriter();
+        QRCodeWriter qrCodeWriter1 = new QRCodeWriter();
         int width = 512;
         int height = 512;
         try {
-            BitMatrix byteMatrix = qrCodeWriter.encode(bytes, BarcodeFormat.QR_CODE, width, height);
+            BitMatrix byteMatrix = qrCodeWriter1.encode(bytes, BarcodeFormat.QR_CODE, width, height);
             Bitmap bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
             for (int x = 0; x < width; x++) {
                 for (int y = 0; y < height; y++) {

@@ -33,20 +33,34 @@
         android:text="Gerar QR de Arquivo" />
 
 
+    <Chronometer
+        android:id="@+id/simpleChronometer"
+        android:layout_width="249dp"
+        android:layout_height="98dp"
+        android:layout_below="@+id/img_Recuperada"
+        android:layout_alignStart="@+id/img_Recuperada"
+        android:layout_alignEnd="@+id/img_Recuperada"
+        android:layout_marginStart="79dp"
+        android:layout_marginTop="23dp"
+        android:layout_marginEnd="84dp"
+        android:textAlignment="center" />
+
     <ImageView
         android:id="@+id/img_Recuperada"
-        android:layout_width="match_parent"
-        android:layout_height="520dp" />
+        android:layout_width="450dp"
+        android:layout_height="450dp" />
 
     <TextView
         android:id="@+id/textQRLidos"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:layout_height="8dp"
         android:layout_above="@+id/btnCriarQRCode"
+        android:layout_below="@+id/simpleChronometer"
         android:layout_alignParentStart="true"
         android:layout_alignParentEnd="true"
         android:layout_marginStart="50dp"
-        android:layout_marginEnd="70dp"
+        android:layout_marginTop="68dp"
+        android:layout_marginEnd="361dp"
         android:layout_marginBottom="5dp"
         android:textSize="24sp" />
 </RelativeLayout>

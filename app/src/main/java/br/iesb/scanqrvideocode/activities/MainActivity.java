@@ -17,6 +17,7 @@ import android.os.Bundle;
 import android.provider.OpenableColumns;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Chronometer;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -32,6 +33,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Objects;
@@ -44,10 +46,10 @@ import static br.iesb.scanqrvideocode.constants.Contantes.PATHFILE;
 public class MainActivity extends AppCompatActivity {
 
     private static final char[] TABELA_CORRECAO = {
-            'X', 'ﾉ', 'P', '�', 'ￇ'
+            'X', 'ﾉ', 'P', '�', 'ￇ','¾','ÿ'
     };
     private static final char[] TABELA_DECODE = {
-            '0', '1', '2', '3', '4'
+            '0', '1', '2', '3', '4','5','6'
     };
     private static final int[] ALPHANUMERIC_TABLE = {
             -119, 80
@@ -59,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageView imageView;
     private TextView textQRLidos;
     private Integer quantidadeQR;
+    private Chronometer simpleChronometer;
     private ArrayList<String> listaString = new ArrayList<>();
     IntentIntegrator integrator = new IntentIntegrator(MainActivity.this);
 
@@ -117,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
         btnScanQRCode = findViewById(R.id.btnScanQRCode);
         imageView = findViewById(R.id.img_Recuperada);
         textQRLidos = findViewById(R.id.textQRLidos);
+        simpleChronometer = (Chronometer) findViewById(R.id.simpleChronometer);
         for (char c : TABELA_CORRECAO) {
             correcaoTabela.add(c);
         }
@@ -153,34 +157,15 @@ public class MainActivity extends AppCompatActivity {
                     buf.read(bytes, 0, bytes.length);
                     buf.close();
                     arquivoCodificado = byteArrayToString(bytes);
-                }
 
+                }
+                //montarImg(arquivoCodificado);
                 Intent i = new Intent(MainActivity.this, GerarQrs.class);
                 i.putExtra("string64", arquivoCodificado);
                 i.putExtra("nomeArquivo", nomeArquivo);
                 startActivity(i);
                 finish();
 
-
-               /*TODO DOCX
-                    byte[] doxcopy = new byte[size];
-                    inputStream.read(doxcopy);
-                     File someFile = new File(PATHFILE +"/testCopy.docx");
-                    FileOutputStream fos = new FileOutputStream(someFile);
-                    fos.write(doxcopy);
-                */
-
-
-
-
-                /* TODO BITMAP MODE
-                    Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 100 , baos);
-                    byte[] b = baos.toByteArray();
-                    Bitmap bitmap2 = BitmapFactory.decodeByteArray(b, 0, b.length);
-
-                 */
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -192,16 +177,20 @@ public class MainActivity extends AppCompatActivity {
             if (result.getContents() == null) {
                 Toast.makeText(this, "Está vazio", Toast.LENGTH_LONG).show();
             }
-            if (result.getContents().length() > 15) {
+            if (!Objects.equals(result.getContents(), "")) {
                 if (listaString.contains(result.getContents())) {
                     integrator.initiateScan();
-                    Toast.makeText(this, "Este Qr Ja foi Lido", Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, "Voce leu: "+ listaString.size() + "De: " + quantidadeQR, Toast.LENGTH_LONG).show();
                 } else {
                     listaString.add(result.getContents());
                     Toast.makeText(this, "Valor do QR adicionado a lista", Toast.LENGTH_LONG).show();
                     quantidadeQR = Integer.valueOf(listaString.get(0).substring(3, 6));
                     textQRLidos.setText("Voce leu: " + listaString.size() + "      De: " + quantidadeQR);
+                    if(listaString.size() == 1){
+                        simpleChronometer.start();
+                    }
                     if (listaString.size() == quantidadeQR) {
+                        simpleChronometer.stop();
                         Collections.sort(listaString);
                         try {
                             montarImg();
@@ -227,37 +216,86 @@ public class MainActivity extends AppCompatActivity {
         String largura = "000" + b.getWidth();
         largura = largura.substring(largura.length() - 4);
         String altura = "000" + b.getHeight();
-        largura = largura.substring(largura.length() - 4);
+        altura = altura.substring(altura.length() - 4);
+        byte[] bytes = recuperarBytes(pixels);
         return largura + altura + getArrayByte(pixels);
+    }
+
+    private byte[] recuperarBytes(int[] pixels) {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        for(int i:pixels){
+            byte[] bytes = ByteBuffer.allocate(4).putInt(i).array();
+            try {
+                output.write(bytes);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return output.toByteArray();
     }
 
     private String getArrayByte(int[] pixels) {
         StringBuilder pixeis = new StringBuilder();
+        StringBuilder correcoes = new StringBuilder();
+        int contador = 0, index = 0;
         for (int pixel : pixels) {
-            char red = (char) Color.red(pixel);
-            char blue = (char) Color.blue(pixel);
-            char green = (char) Color.green(pixel);
-            char alpha = (char) Color.alpha(pixel);
-            pixeis.append(red);
-            pixeis.append(blue);
-            pixeis.append(green);
-            pixeis.append(alpha);
+
+            if(pixel == -1){
+                pixeis.append("XB");
+            }
+            else if(pixel == -3584){
+                pixeis.append("XY");
+            }
+            else {
+                char alpha = (char) Color.alpha(pixel);
+                char red = (char) Color.red(pixel);
+                char green = (char) Color.green(pixel);
+                char blue = (char) Color.blue(pixel);
+                pixeis.append(alpha);
+                pixeis.append(red);
+                pixeis.append(green);
+                pixeis.append(blue);
+            }
         }
+        //String contadorS = "00" + contador;
+        //contadorS = contadorS.substring(contadorS.length() - 3);
+        //recuperarArrayByte(pixeis.toString());
+        //return contadorS + correcoes + pixeis.toString();
         return pixeis.toString();
     }
 
-    private int[] getPixelsFromByteArray(String encoded) {
-        int[] pixels = new int[encoded.length() / 4];
-        int index = 0;
-        int color;
+    private int[] getPixelsFromByteArray(String encoded,int tamanho) {
+        int[] pixels = new int[tamanho];
+        if(encoded.length()!=tamanho*4){
+            int diferenca = (tamanho*4) - encoded.length();
+            StringBuilder encodedBuilder = new StringBuilder(encoded);
+            for(int i = 0; i<diferenca; i++){
+                encodedBuilder.append("ÿ");
+            }
+            encoded = encodedBuilder.toString();
+        }
+        int i=0;
+        //int result = ByteBuffer.wrap(bytes).getInt();
+        for (int index = 0; index < pixels.length; index++) {
 
-        for (int i = 0; i < encoded.length(); i += 4) {
-            int red = encoded.charAt(i);
-            int blue = encoded.charAt(i + 1);
+            int alpha = encoded.charAt(i);
+            int red = encoded.charAt(i + 1);
             int green = encoded.charAt(i + 2);
-            int alpha = encoded.charAt(i + 3);
-            pixels[index] = color = (alpha & 0xff) << 24 | (red & 0xff) << 16 | (green & 0xff) << 8 | (blue & 0xff);
-            index++;
+            int blue = encoded.charAt(i + 3);
+            if(alpha>255){
+                alpha = 255;
+            }
+            if(red>255){
+                red = 255;
+            }
+            if(green>255){
+                green = 255;
+            }
+            if(blue>255){
+                blue = 255;
+            }
+            pixels[index]  = (alpha & 0xff) << 24 | (red & 0xff) << 16 | (green & 0xff) << 8 | (blue & 0xff);
+            i +=4;
         }
 
         return pixels;
@@ -267,23 +305,35 @@ public class MainActivity extends AppCompatActivity {
         StringBuilder retorno = new StringBuilder();
         StringBuilder correcoes = new StringBuilder();
         char c;
-        int contador = 0, index = 0;
-
+        //int contador = 0, index = 0;
         for (byte b : bytes) {
             /*if (correcaoTabela.contains((char) b)) {
                 retorno.append('X');
                 index = correcaoTabela.indexOf((char) b);
                 correcoes.append(decodeTabela.get(index));
                 contador++;
-            } *///else {
+            } else {
+             */
                 c = (char) b;
                 retorno.append(c);
             //}
         }
+
         //String contadorS = "00" + contador;
         //contadorS = contadorS.substring(contadorS.length() - 3);
+        //return contadorS + correcoes + retorno.toString();
+
+
+       /* String k ="";
+        for(int i=0;i<255;i++){
+            char b = (char) ((byte) i &0xff);
+            k = i + "- "+b ;
+            retorno.append(k);
+        }
+        */
         return retorno.toString();
     }
+
 
     private void montarImg() throws IOException, ClassNotFoundException {
         String string64Remontada = "";
@@ -316,7 +366,6 @@ public class MainActivity extends AppCompatActivity {
             bos.flush();
             bos.close();
         }
-
     }
 
     private void salvarImg(Bitmap bitmap, String fotoname) {
@@ -338,27 +387,36 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private String aplicaFiltroCorrecao(String string64Remontada) {
-        StringBuilder retorno = new StringBuilder();
-        int quantidadeCorrecoes = Integer.parseInt(string64Remontada.substring(0, 3)), index = 0;
-        String correcoes = string64Remontada.substring(3, 3 + quantidadeCorrecoes);
-        string64Remontada = string64Remontada.substring(3 + correcoes.length());
-        for (int i = 0; i < string64Remontada.length(); i++) {
-            if (string64Remontada.charAt(i) == 'X') {
+        //StringBuilder retorno = new StringBuilder();
+        String stringCorrigida = string64Remontada.replaceAll("XY","ÿ\u0000òÿ");
+        stringCorrigida = stringCorrigida.replaceAll("XB", "ÿÿÿÿ");
+        /*int quantidadeCorrecoes = Integer.parseInt(stringCorrigida.substring(0, 3)), index = 0;
+        String correcoes = stringCorrigida.substring(3, 3 + quantidadeCorrecoes);
+        stringCorrigida = stringCorrigida.substring(3 + correcoes.length());
+        for (int i = 0; i < stringCorrigida.length(); i++) {
+            if (stringCorrigida.charAt(i) == 'X') {
                 index = decodeTabela.indexOf(correcoes.charAt(0));
                 correcoes = correcoes.substring(1);
                 retorno.append(correcaoTabela.get(index));
             } else {
-                retorno.append(string64Remontada.charAt(i));
+                retorno.append(stringCorrigida.charAt(i));
             }
         }
-        return retorno.toString();
+        */
+
+        //recuperarArrayByte(retorno.toString());
+        /*recuperarArrayByte(string64Remontada);
+        String stringCorrigida = string64Remontada.replaceAll("XY","ÿ\u0000òÿ");
+        stringCorrigida = stringCorrigida.replaceAll("XB", "ÿÿÿÿ");
+        recuperarArrayByte(stringCorrigida);*/
+        return stringCorrigida;
     }
 
     private byte[] recuperarArrayByte(String g) {
         byte[] bytesRecuperados = new byte[g.length()];
 
         for (int i = 0; i < g.length(); i++) {
-            bytesRecuperados[i] = (byte) g.charAt(i);
+            bytesRecuperados[i] = (byte) g.charAt(i) ;
         }
         return bytesRecuperados;
     }
@@ -385,14 +443,12 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         return result;
-
-
     }
 
     public Bitmap decodificaImg(String encoded, int largura, int altura) {
-        int[] pixeeeels = getPixelsFromByteArray(encoded);
+        int[] pixels = getPixelsFromByteArray(encoded,largura*altura);
         Bitmap bitmap = Bitmap.createBitmap(largura, altura, Bitmap.Config.ARGB_8888);
-        bitmap.setPixels(pixeeeels, 0, largura, 0, 0, largura, altura);
+        bitmap.setPixels(pixels, 0, largura, 0, 0, largura, altura);
         return bitmap;
 
     }

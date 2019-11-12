@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Objects;
 
 import br.iesb.scanqrvideocode.R;
@@ -62,6 +63,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView textQRLidos;
     private Integer quantidadeQR;
     private Chronometer simpleChronometer;
+    private long inicio =0,fim=0;
+    private Date date;
     private ArrayList<String> listaString = new ArrayList<>();
     IntentIntegrator integrator = new IntentIntegrator(MainActivity.this);
 
@@ -91,6 +94,8 @@ public class MainActivity extends AppCompatActivity {
         btnScanQRCode.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                simpleChronometer.start();
+
                 iniciaScan();
             }
         });
@@ -182,14 +187,20 @@ public class MainActivity extends AppCompatActivity {
                     integrator.initiateScan();
                     Toast.makeText(this, "Voce leu: "+ listaString.size() + "De: " + quantidadeQR, Toast.LENGTH_LONG).show();
                 } else {
+                    if(listaString.size()<1){
+                        inicio = System.nanoTime();
+                    }
                     listaString.add(result.getContents());
                     Toast.makeText(this, "Valor do QR adicionado a lista", Toast.LENGTH_LONG).show();
                     quantidadeQR = Integer.valueOf(listaString.get(0).substring(3, 6));
                     textQRLidos.setText("Voce leu: " + listaString.size() + "      De: " + quantidadeQR);
-                    if(listaString.size() == 1){
-                        simpleChronometer.start();
-                    }
+
+
+
                     if (listaString.size() == quantidadeQR) {
+                        fim = System.nanoTime();
+                        long duration = fim - inicio;
+                        Toast.makeText(MainActivity.this,"Tempo: "+duration/1000000,Toast.LENGTH_LONG).show();
                         simpleChronometer.stop();
                         Collections.sort(listaString);
                         try {

@@ -4,7 +4,7 @@ import android.os.Environment;
 
 public class Contantes {
 
-    public static final int CAPACIDADE_POR_NIVEL_QR = 644;
+    public static final int CAPACIDADE_POR_NIVEL_QR = 106;
 
     public static final int HEADER = 9;
 

@@ -17,7 +17,6 @@ import android.os.Bundle;
 import android.provider.OpenableColumns;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Chronometer;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -62,9 +61,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageView imageView;
     private TextView textQRLidos;
     private Integer quantidadeQR;
-    private Chronometer simpleChronometer;
     private long inicio =0,fim=0;
-    private Date date;
     private ArrayList<String> listaString = new ArrayList<>();
     IntentIntegrator integrator = new IntentIntegrator(MainActivity.this);
 
@@ -94,7 +91,6 @@ public class MainActivity extends AppCompatActivity {
         btnScanQRCode.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                simpleChronometer.start();
 
                 iniciaScan();
             }
@@ -125,7 +121,6 @@ public class MainActivity extends AppCompatActivity {
         btnScanQRCode = findViewById(R.id.btnScanQRCode);
         imageView = findViewById(R.id.img_Recuperada);
         textQRLidos = findViewById(R.id.textQRLidos);
-        simpleChronometer = (Chronometer) findViewById(R.id.simpleChronometer);
         for (char c : TABELA_CORRECAO) {
             correcaoTabela.add(c);
         }
@@ -201,7 +196,6 @@ public class MainActivity extends AppCompatActivity {
                         fim = System.nanoTime();
                         long duration = fim - inicio;
                         Toast.makeText(MainActivity.this,"Tempo: "+duration/1000000,Toast.LENGTH_LONG).show();
-                        simpleChronometer.stop();
                         Collections.sort(listaString);
                         try {
                             montarImg();
@@ -461,6 +455,5 @@ public class MainActivity extends AppCompatActivity {
         Bitmap bitmap = Bitmap.createBitmap(largura, altura, Bitmap.Config.ARGB_8888);
         bitmap.setPixels(pixels, 0, largura, 0, 0, largura, altura);
         return bitmap;
-
     }
 }

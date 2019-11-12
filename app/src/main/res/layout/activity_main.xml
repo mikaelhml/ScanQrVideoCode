@@ -12,10 +12,10 @@
         android:id="@+id/btnScanQRCode"
         android:layout_width="106dp"
         android:layout_height="67dp"
-        android:layout_below="@+id/simpleChronometer"
+        android:layout_below="@+id/textQRLidos"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginTop="11dp"
+        android:layout_marginTop="13dp"
         android:layout_marginEnd="20dp"
         android:layout_marginBottom="12dp"
         android:text="Ler QR" />
@@ -24,25 +24,13 @@
         android:id="@+id/btnCriarQRCode"
         android:layout_width="97dp"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/simpleChronometer"
+        android:layout_below="@+id/textQRLidos"
         android:layout_alignParentStart="true"
         android:layout_alignParentBottom="true"
         android:layout_marginStart="20dp"
-        android:layout_marginTop="11dp"
+        android:layout_marginTop="13dp"
         android:layout_marginBottom="12dp"
         android:text="Gerar QR de Arquivo" />
-
-    <Chronometer
-        android:id="@+id/simpleChronometer"
-        android:layout_width="111dp"
-        android:layout_height="23dp"
-        android:layout_below="@+id/img_Recuperada"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginStart="114dp"
-        android:layout_marginTop="6dp"
-        android:layout_marginEnd="95dp"
-        android:textAlignment="center" />
 
     <ImageView
         android:id="@+id/img_Recuperada"
@@ -51,15 +39,13 @@
 
     <TextView
         android:id="@+id/textQRLidos"
-        android:layout_width="136dp"
-        android:layout_height="56dp"
-        android:layout_above="@+id/btnCriarQRCode"
-        android:layout_below="@+id/simpleChronometer"
+        android:layout_width="93dp"
+        android:layout_height="18dp"
+        android:layout_below="@+id/img_Recuperada"
         android:layout_alignParentStart="true"
         android:layout_alignParentEnd="true"
-        android:layout_marginStart="140dp"
-        android:layout_marginTop="63dp"
-        android:layout_marginEnd="135dp"
-        android:layout_marginBottom="-97dp"
+        android:layout_marginStart="100dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="127dp"
         android:textSize="24sp" />
 </RelativeLayout>
